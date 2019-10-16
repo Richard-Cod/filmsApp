@@ -1,5 +1,5 @@
 import React from 'react'
-import {StyleSheet,View,Button,TextInput,FlatList} from 'react-native'
+import {StyleSheet,View,Button,TextInput,FlatList,ActivityIndicator} from 'react-native'
 import {getFilmsFromApiWithSearchedText} from '../API/TMDB'
 import FilmsItems from './fitem';
 
@@ -9,23 +9,39 @@ class Search extends React.Component{
    super(props)
    this.searchedText = "" // Initialisation de notre donnée searchedText en dehors du state
    this.state = {
-     films: []
+     films: [],
+     isloading: false
    }
  }
 
   _loadFilms() {
   if (this.searchedText.length > 0) {
+    this.setState({isloading:true})
     getFilmsFromApiWithSearchedText(this.searchedText).then(data => {
-      this.setState({ films: data.results })
+      this.setState({
+         films: data.results,
+         isloading: false})
     })
-    console.log(this.state)
+
    }
+
  }
  _searchTextInputChanged(text){
    this.searchedText = text
  }
+ _chargement(){
+   if (this.state.isloading === true) {
+         return (
+           <View style={styles.chargeur}>
+                 <ActivityIndicator size="large" color="red" />
+           </View>
+         );
+
+   }
+ }
 render(){
-  console.log("render");
+  console.log(this.state.isloading)
+
         return (
         	<View style={styles.main_container}>
         	<TextInput onChangeText={(text) => this._searchTextInputChanged(text)} style={styles.textInputStyle} placeholder="Entrer le titre du film"/>
@@ -35,9 +51,12 @@ render(){
               keyExtractor= {(item) => item.id.toString()}
               renderItem ={({item}) => <FilmsItems films={item} />}
           />
+            {this._chargement()}
         	</View>
 
             )
+
+
           }
 }
 
@@ -51,5 +70,12 @@ const styles = StyleSheet.create({
   },
   textInputStyle:{
     alignItems:'center'
-  }
+  },
+  chargeur:{
+    position:'absolute',
+    top:100,
+    left:0,
+    right:0,
+    alignItems:'center',
+    justifyContent:'center'}
 });
